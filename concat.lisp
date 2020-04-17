@@ -14,6 +14,10 @@
 
 (in-package :cl-fring)
 
+(defparameter one- '(-1000 -900 -800 -700 -600 -500 -400 -300 -200 -100 -90 -80 -70 -60 -50 -40 -30 -20 -10 -9 -8 -7 -6 -5 -4 -3 -2 -1))
+
+(defparameter one+ '(1 2 3 4 5 6 7 8 9 10 20 30 40 50 60 70 80 90 100 200 300 400 500 600 700 800 900 1000))  
+
 ;; Just a useful function
 
 (defun flatten (obj)
@@ -91,3 +95,72 @@
        (> (length l1)(length l2))
        (search l2 l1))
       t))
+
+(defun f-scale (l1 l2)
+  (let (l)
+    (f-reduce l1)
+    (f-reduce l2)
+    (loop for x in l1 do
+	 (loop for y from 0 to (1- (length l2)) do
+		  (push x l)))
+    (reverse l)))
+
+(defun group-list (l)
+  (let (nl (n nil) (c 0))
+    (loop for x in l do
+	 (if (not (equal n x))
+	     (progn
+	       (push (list n c) nl)
+	       (setf c 1 n x))
+	     (incf c)))
+    (push (list n c) nl)
+    (cdr (reverse nl))))
+
+(defun ungroup-list (l)
+  (let (nl)
+    (loop for x in l do
+	 (loop for y from 1 to (cadr x) do
+	      (push (car x) nl)))
+    (reverse nl)))
+
+(defun f-unscale (l)
+  (let (g)
+    (setf l (group-list l))
+    (setf g (loop for x in l collect (cadr x)))
+    (setf g (reduce #'gcd g))
+    (loop for x in l do (setf (cadr x) (/ (cadr x) g)))
+    (values (ungroup-list l) g)))
+
+(defun f-decompose (l)
+  (let ((red (remove-duplicates
+	      (mapcar #'abs l)))
+	g ln r)
+    (setf l (group-list l))
+    (loop for x in red do
+	 (loop for y in l do
+	      (if (eq (abs (car y)) x)
+		  (push (cadr y) g)))
+	 (setf g (reduce #'gcd g))
+	 (loop for y in l do
+	      (if (eq (abs (car y)) x)
+		  (setf (cadr y) (/ (cadr y) g))))
+	 (push (list x g) ln)(setf g nil))
+    (setf r (ungroup-list (reverse ln)))
+    (values (ungroup-list l)
+	    (if (equal r red) nil (reverse r)))))
+	    
+(defun f-gate-apply (g l)
+  (if (=(abs (car g))(abs (cadr g)))
+      l
+      (mapcar (lambda(x)
+		(if (= (abs x) (abs (car g)))
+		    (* (signum x)(cadr g))
+		    (if (= (abs x) (abs (cadr g)))
+			(* (signum x) (car g)) x)))
+	      l)))
+
+(defun f-first (l)
+  (car l))
+
+(defun f-last (l)
+  (car (last l)))
