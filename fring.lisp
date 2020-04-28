@@ -47,8 +47,8 @@
 
 (defun f*2 (l1 l2)
   (let (l)
-    (f-reduce l1)
-    (f-reduce l2)
+    (setf l1 (f-reduce l1)
+	  l2 (f-reduce l2))
     (loop for x in l1 do
 	 (loop for y in l2 do
 	      (if (eq (abs x)(abs y))
@@ -96,14 +96,17 @@
        (search l2 l1))
       t))
 
+;; Scalar mulpiplication
+
 (defun f-scale (l1 l2)
-  (let (l)
-    (f-reduce l1)
-    (f-reduce l2)
+  (let (l r)
+    (setf l1 (f-reduce l1)
+	  l2 (f-reduce l2)
+	  r  (reduce #'+ (mapcar #'signum l2)))
     (loop for x in l1 do
-	 (loop for y from 0 to (1- (length l2)) do
-		  (push x l)))
-    (reverse l)))
+	 (loop for y from 0 to (1- (abs r)) do
+              (push x l)))
+    (reverse (mapcar (lambda (x) (* x (signum r))) l))))
 
 (defun group-list (l)
   (let (nl (n nil) (c 0))
@@ -131,6 +134,8 @@
     (loop for x in l do (setf (cadr x) (/ (cadr x) g)))
     (values (ungroup-list l) g)))
 
+;; Detemining the main prime factor 
+
 (defun f-decompose (l)
   (let ((red (remove-duplicates
 	      (mapcar #'abs l)))
@@ -148,7 +153,9 @@
     (setf r (ungroup-list (reverse ln)))
     (values (ungroup-list l)
 	    (if (equal r red) nil (reverse r)))))
-	    
+
+;; Applying a transposition
+
 (defun f-gate-apply (g l)
   (if (=(abs (car g))(abs (cadr g)))
       l
@@ -159,8 +166,44 @@
 			(* (signum x) (car g)) x)))
 	      l)))
 
+(defun f-replace (g l)
+  (mapcar (lambda (x)
+	    (if (= x (car g))
+		   (setf x (cadr g)) x))
+	  l))
+	  
+;; Nicer to have two simple functions with "symmetrical" names 
+
 (defun f-first (l)
   (car l))
 
 (defun f-last (l)
   (car (last l)))
+
+;; Implementing an isomorphism of the rational numbers field
+
+(defun add-2 (l1 l2 &key (first '(1)) (second '(2)))
+  (let (a b c)
+    (if (null l1) (setf l1 '(2)))
+    (if (null l2) (setf l2 '(2)))
+    (setf a (f* l1 second)
+	  b (f* l2 second)
+	  l1 (f-scale l1 b)
+	  l2 (f-scale l2 a)
+	  c (f-unscale
+	     (f+ (f* first l1) (f* first l2) (f* second l1))))
+    c))
+
+(defun mul-2 (l1 l2 &key (first '(1)) (second '(2)))
+  (let ((a (append first second)))
+    (f-unscale (f* l1 l2 a))))
+  
+(defun inv-2 (l1 &key (first '(1)) (second '(2)))
+  (f+ (f-scale (f-scale first (f* second l1))
+	       (f-unscale (f* second l1)))
+      (f-scale (f-scale second (f* first l1))
+	       (f-unscale (f* second l1)))))
+
+ (defun div-2 (l1 l2 &key (first '(1)) (second '(2)))
+   (mul-2 l1 (inv-2 l2 :first first :second second)
+	  :first first :second second))
