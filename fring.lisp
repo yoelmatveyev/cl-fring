@@ -43,7 +43,7 @@
 (defun f+ (&rest l)
   (f-reduce (flatten (append l))))
 
-;;;; The multiplication is associative, but distributes only on the right over addition
+;;;; The multiplication is associative, but distribute only on the right over addition
 
 (defun f*2 (l1 l2)
   (let (l)
@@ -96,7 +96,7 @@
        (search l2 l1))
       t))
 
-;; Scalar mulpiplication
+;; Scalar multiplication
 
 (defun f-scale (l1 l2)
   (let (l r)
@@ -166,6 +166,8 @@
 			(* (signum x) (car g)) x)))
 	      l)))
 
+;; Simple replacement of one particular symbol 
+
 (defun f-replace (g l)
   (mapcar (lambda (x)
 	    (if (= x (car g))
@@ -180,7 +182,8 @@
 (defun f-last (l)
   (car (last l)))
 
-;; Implementing an isomorphism of the rational numbers field
+;; Implementing an isomorphism of the rational numbers field using only operations 
+;; easily definable by the two basic operation of our near-ring
 
 (defun add-2 (l1 l2 &key (first '(1)) (second '(2)))
   (let (a b c)
