@@ -183,7 +183,7 @@
   (car (last l)))
 
 ;; Implementing an isomorphism of the rational numbers field using only operations 
-;; easily definable by the two basic operation of our near-ring
+;; easily definable by the basic operations of our near-ring
 
 (defun add-2 (l1 l2 &key (first '(1)) (second '(2)))
   (let (a b c)
