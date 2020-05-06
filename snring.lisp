@@ -1,4 +1,4 @@
-(defpackage :cl-fring 
+(defpackage :cl-snring 
   (:use :common-lisp)
   (:export f-reduce
 	   f+
